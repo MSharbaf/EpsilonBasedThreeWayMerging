@@ -1,0 +1,469 @@
+pre{
+	for (p in Target!Package) { 
+		delete p ; 
+	}
+
+//	"Pre".println()  ;
+}
+
+rule MergeModel
+	merge l : Left!Model with r : Right!Model into t : Target!Model {
+	
+	t.name = l.name ;	
+	r.eContainer.equivalent(t) ; 
+	
+//	"MergeModel".println() ; 
+}
+
+rule MergePackage
+	merge l : Left!Package with r : Right!Package into t : Target!Package {
+	
+	t.name = l.name ;	
+	r.eContainer.equivalent(t) ; 
+	
+//	"MergePackage".println() ; 
+}
+
+rule MergeDataType
+	merge l : Left!DataType with r : Right!DataType  into t : Target!DataType {
+	
+	t.name = r.name;
+	t.isAbstract = r.isAbstract;
+	t.powertypeExtent = r.powertypeExtent.equivalent() ;
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeDataType".println()  ;
+}
+
+rule MergePrimitiveType
+	merge l : Left!PrimitiveType with r : Right!PrimitiveType  into t : Target!PrimitiveType {
+	
+	t.name = r.name;
+	t.isAbstract = r.isAbstract;
+	t.powertypeExtent = r.powertypeExtent.equivalent() ;
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergePrimitiveType".println()  ;
+}
+
+rule MergeEnumeration
+	merge l : Left!Enumeration with r : Right!Enumeration into t : Target!Enumeration {
+
+	t.name = r.name ; 
+	t.isAbstract = r.isAbstract ;
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeEnumeration".println()  ;
+}
+
+rule MergeEnumerationLiteral
+	merge l : Left!EnumerationLiteral with r : Right!EnumerationLiteral into t : Target!EnumerationLiteral{
+
+	t.name = r.name ; 
+	t.Visibility = r.Visibility ;
+	r.eContainer.equivalent().ownedLiteral.add(t);
+	
+//	"MergeEnumerationLiteral".println() ; 
+}
+
+rule MergeClass
+	merge l : Left!Class with r : Right!Class  into t : Target!Class {
+	
+	t.name = r.name;
+	t.isAbstract = r.isAbstract;
+	if(l.Visibility.asString() == "Private")
+		t.Visibility = l.Visibility ; 
+	else
+	 	t.Visibility = r.Visibility ;
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeClass".println()  ;
+}
+
+rule MergeClassInterface
+	merge l : Left!Class with r : Right!Interface  into t : Target!Interface {
+	
+	t.name = r.name;
+	t.isAbstract = r.isAbstract;
+	t.Visibility = r.Visibility ;
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeClassInterface".println()  ;
+}
+
+rule MergeInterfaceClass
+	merge l : Left!Interface with r : Right!Class  into t : Target!Interface {
+	
+	t.name = l.name;
+	t.isAbstract = l.isAbstract;
+	t.Visibility = l.Visibility ;
+	l.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeInterfaceClass".println()  ;
+}
+
+rule MergeInterface
+	merge l : Left!Interface with r : Right!Interface  into t : Target!Interface {
+	
+	t.name = r.name;
+	t.isAbstract = r.isAbstract;
+	t.Visibility = r.Visibility ;
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeInterface".println()  ;
+}
+
+rule MergeDependency
+	merge l : Left!Dependency with r : Right!Dependency into t : Target!Dependency{
+	
+	t.name = r.name ;
+	t.client = r.client.equivalent() ; 
+	t.supplier = r.supplier.equivalent() ; 	
+	r.eContainer.equivalent().packagedElement.add(t);
+	
+//	"MergeDependency".println() ; 
+}
+
+rule MergeAssociation
+	merge l : Left!Association with r : Right!Association into t : Target!Association{
+	
+	t.name = r.name ;
+	t.isAbstract = r.isAbstract;	
+	r.eContainer.equivalent().packagedElement.add(t);
+
+	"MergeAssociation".println() ; 
+}
+
+rule MergeAssociationClass
+	merge l : Left!AssociationClass with r : Right!AssociationClass into t : Target!AssociationClass{
+	
+	t.name = r.name ;
+	t.isAbstract = r.isAbstract;	
+	r.eContainer.equivalent().packagedElement.add(t);
+ 
+//	"MergeAssociationClass".println() ; 
+}
+
+rule CopyClass
+	transform s : Source!Class to t : Target!Class {
+	
+//	t.name = "Copy " + s.name;
+	t.name = s.name;
+	t.isAbstract = s.isAbstract;
+	t.Visibility = s.Visibility ; 
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+
+
+rule MergeProperty
+	merge l : Left!Property with r : Right!Property into t : Target!Property{
+		
+	t.name = r.name ; 
+	t.type = r.type.equivalent() ;
+	
+	if(l.Visibility.asString() == "Private")
+		t.Visibility = l.Visibility ; 
+	else
+	 	t.Visibility = r.Visibility ;
+	
+	if(r.Lower == l.Lower)
+		t.Lower = r.Lower ;
+	else if(l.Lower == -1)
+		t.Lower = r.Lower ; 
+	else if(r.Lower == -1)
+		t.Lower = l.Lower ;
+	else if(l.Lower > r.Lower)
+		t.Lower = r.Lower ;
+	else
+		t.Lower = l.Lower ;
+		
+	if(r.Upper == l.Upper) 
+		t.Upper = r.Upper ;
+	else if(l.Upper == -1)
+		t.Upper = l.Upper ; 
+	else if(r.Upper == -1)
+		t.Upper = r.Upper ;
+	else if(l.Upper > r.Upper)
+		t.Upper = l.Upper ;
+	else
+		t.Upper = r.Upper ;
+		
+	t.Aggregation = r.Aggregation ; 
+	
+	if(r.Namespace.type.name == "Class")
+	{
+		r.eContainer.equivalent().ownedAttributes.add(t);
+		if(r.Association.isDefined())
+		{
+			t.Association = r.Association.equivalent() ; 
+		}
+	}	
+	else if (r.Namespace.type.name == "Association")
+	{	 
+		r.eContainer.equivalent().ownedEnd.add(t);	
+	}	
+	else if (r.Namespace.type.name == "AssociationClass")
+	{	  
+		r.eContainer.equivalent().ownedEnd.add(t);	
+	}			
+	
+//	"MergeProperty".println() ; 
+}
+
+rule MergeOperation
+	merge l : Left!Operation with r : Right!Operation into t : Target!Operation{
+				
+	t.name = r.name ; 
+	t.isAbstract = r.isAbstract ;
+	t.isStatic = r.isStatic ; 
+	t.isQuery = r.isQuery ;
+	t.Visibility = r.Visibility ;
+	t.Concurrency = r.Concurrency ; 
+	r.eContainer.equivalent().ownedOperation.add(t); 
+	t.method = r.method.equivalent(); 
+	t.bodyCondition = r.bodyCondition ;
+	t.postcondition = r.postcondition.equivalent() ;
+	t.precondition = r.precondition.equivalent() ; 
+		
+//	"MergeOperation".println() ; 
+}
+
+rule MergeConstraint
+	merge l : Left!Constraint with r : Right!Constraint into t : Target!Constraint{
+	
+	t.name = r.name ;
+	t.constrainedElement = r.constrainedElement.equivalent() ;
+	r.eContainer.equivalent().ownedRules.add(t); 
+	
+//	"MergeConstraint".println() ; 
+}
+
+rule MergeGeneralization
+	merge l : Left!Generalization with r : Right!Generalization into t : Target!Generalization{
+		
+	t.general = r.general.equivalent() ; 
+	r.eContainer.equivalent().generalization.add(t); 
+	
+//	"MergeGeneralization".println() ; 
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+rule CopyModel
+	transform s : Source!Model to t : Target!Model {
+	t ::= s ; 
+}
+
+rule CopyPackage
+	transform s : Source!Package to t : Target!Package {
+	t ::= s ; 
+//	t.contents ::= s.contents; 	l.eContainer.equivalent(t) ; 
+}
+
+rule CopyDataType
+	transform s : Source!DataType to t : Target!DataType {
+	
+	t.name = s.name;
+	t.isAbstract = s.isAbstract;
+	t.powertypeExtent = s.powertypeExtent.equivalent() ;
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+
+rule CopyPrimitiveType
+	transform s : Source!PrimitiveType to t : Target!PrimitiveType {
+	
+	t.name = s.name;
+	t.isAbstract = s.isAbstract;
+	t.powertypeExtent = s.powertypeExtent.equivalent() ;
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+
+rule CopyEnumeration
+	transform s : Source!Enumeration to t : Target!Enumeration {
+
+	t.name = s.name ; 
+	t.isAbstract = s.isAbstract ;
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+
+rule CopyEnumerationLiteral
+	transform s : Source!EnumerationLiteral to t : Target!EnumerationLiteral{
+
+	t.name = s.name ; 
+	t.Visibility = s.Visibility ;
+
+	s.eContainer.equivalent().ownedLiteral.add(t);
+}
+
+
+
+rule CopyInterface
+	transform s : Source!Interface to t : Target!Interface {
+	
+//	t.name = "Copy " + s.name;
+	t.name = s.name;
+	t.isAbstract = s.isAbstract;
+	t.Visibility = s.Visibility ; 
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+
+rule CopyDependency
+	transform s : Source!Dependency to t : Target!Dependency {
+	
+//	t.name = "Copy " + s.name;
+	t.name = s.name;
+	t.client = s.client.equivalent() ; 
+	t.supplier = s.supplier.equivalent() ; 	
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+ 
+rule CopyAssociation
+	transform s : Source!Association to t : Target!Association {
+	
+//	guard: s.memberEnd.size > 2
+	guard: s.memberEnd.forAll(e|e.Type.isDefined())
+	
+//	t.name = "Copy " + s.name;
+	t.name = s.name;
+	t.isAbstract = s.isAbstract;
+	
+	"MergeAssociationClassPre".println() ; 
+	s.eContainer.equivalent().packagedElement.add(t);
+	"MergeAssociationClassPost".println() ; 
+} 
+
+rule CopyAssociationClass
+	transform s : Source!AssociationClass to t : Target!AssociationClass {
+	
+//	t.name = "Copy " + s.name;
+	t.name = s.name;
+	t.isAbstract = s.isAbstract;
+	
+	s.eContainer.equivalent().packagedElement.add(t);
+}
+
+rule CopyProperty
+	transform s : Source!Property to t : Target!Property{
+	guard: s.isDefined() and s.eContainer.isDefined() 
+	
+//	t.name = "Copy" + s.name ; 
+	t.name = s.name;
+	t.type = s.type.equivalent() ;
+	t.Lower = s.Lower ; 
+	t.Upper = s.Upper ; 
+	t.Aggregation = s.Aggregation ;
+	
+	"Association".println() ; 
+	if(s.Namespace.type.name == "Class")
+	{
+		s.eContainer.equivalent().ownedAttributes.add(t); 	
+		if(s.Association.isDefined())
+		{
+			t.Association = s.Association.equivalent() ; 
+		}	
+	}	
+	else if (s.Namespace.type.name == "Association")
+	{
+		"MAssociation".println() ; 
+		if(s.type.isDefined() /* and t.Association.isDefined() and t.Association.all->exists(p|p.name == s.association.name)*/){		
+			"add".println() ; 
+			if(s.name <> "ItemEnd2"){
+			s.eContainer.equivalent().ownedEnd.add(t);
+			"OK".println() ;}
+			else
+				delete t ;
+		}
+		else
+		{
+			"delete".println() ;
+			delete t ; 
+		}
+	}		
+	else if (s.Namespace.type.name == "AssociationClass")
+	{	  
+		if(s.type.isDefined() and t.Association.isDefined())
+			s.eContainer.equivalent().ownedEnd.add(t);	
+		else
+			delete t ; 
+	}	
+}
+
+rule CopyOperation
+	transform s : Source!Operation to t : Target!Operation{
+		
+//	t.name = "Copy" + s.name ; 
+	t.name = s.name;
+	t.isAbstract = s.isAbstract ;
+	t.isStatic = s.isStatic ; 
+	t.isQuery = s.isQuery ;
+	t.Visibility = s.Visibility ;
+	t.Concurrency = s.Concurrency ; 
+	s.eContainer.equivalent().ownedOperation.add(t); 	 
+}
+
+rule CopyConstraint
+	transform s : Source!Constraint to t : Target!Constraint{
+
+//	t.name = "Copy" + s.name ; 	
+	t.name = r.name ;
+	t.constrainedElement = s.constrainedElement.equivalent() ;
+	s.eContainer.equivalent().ownedRules.add(t); 
+}
+
+rule CopyGeneralization
+	transform s : Source!Generalization to t : Target!Generalization{
+	
+	guard: 	s.isDefined()
+	
+	var flag = false ;	
+	"Generalization".println() ; 
+	for(g in Target!Generalization)
+	{
+		"StartGen".println();
+ 		if(g.isDefined() and g.general.isDefined() and s.general.isDefined())
+		{		
+			"FirstIf".println() ; 
+			if(s.general.name == g.eContainer.name and g.general.name == s.eContainer.name)	
+		//	if(s.general.name.matches(g.eContainer.name) and g.general.name.matches(s.eContainer.name))	
+			{	
+				"SecondIf".println() ; 
+				flag = true ; 
+			//	delete g ; 
+				break ; 
+			} 
+		}			
+	}
+
+	if(not s.general.isDefined())
+	{
+		"true".println() ; 
+		flag = true ;  
+	}
+	
+	if(s.eContainer.isDefined())
+	{
+		t.general = s.general.equivalent() ; 
+		s.eContainer.equivalent().generalization.add(t); 
+	}
+	else
+		flag = true ;  
+		
+	flag.println() ; 
+	if(flag == true)
+		delete t ; 
+	
+}
+
+rule CopyComment
+	transform s : Source!Comment to t : Target!Comment{
+
+	t.annotatedElement = s.annotatedElement.equivalent() ;
+	t.body = s.body ; 
+	s.eContainer.equivalent().ownedComment.add(t); 
+}

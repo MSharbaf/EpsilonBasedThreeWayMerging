@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            description="Creating a Process for 3-way Merging"
+            id="ir.ui.se.mdserg.e3mp.commands.category"
+            name="E3MP">
+      </category>
+      <command
+            categoryId="ir.ui.se.mdserg.e3mp.commands.category"
+            description="Creating a Process for Three-way Merging"
+            id="ir.ui.se.mdserg.e3mp.commands.mergingCommand"
+            name="Merging">
+      </command>
+      <command
+            categoryId="ir.ui.se.mdserg.e3mp.commands.category"
+            description="Creating a ModeLink for Model Matching"
+            id="ir.ui.se.mdserg.e3mp.commands.matchingCommand"
+            name="Matching">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="ir.ui.se.mdserg.e3mp.commands.mergingCommand"
+            class="ir.ui.se.mdserg.e3mp.handlers.MergingHandler">
+      </handler>
+      <handler
+            class="ir.ui.se.mdserg.e3mp.handlers.MatchingHandler"
+            commandId="ir.ui.se.mdserg.e3mp.commands.matchingCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="ir.ui.se.mdserg.e3mp.commands.sampleCommand"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+6"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            locationURI="menu:org.eclipse.ui.main.menu?after=additions">
+         <menu
+               label="EpsilonThree-wayMerging"
+               mnemonic="M"
+               id="ir.ui.se.mdserg.e3mp.menus.sampleMenu">
+            <command
+                  commandId="ir.ui.se.mdserg.e3mp.commands.matchingCommand"
+                  icon="icons/Match.gif"
+                  id="ir.ui.se.mdserg.e3mp.menus.matchingCommand"
+                  label="Matching"
+                  mnemonic="S">
+            </command>
+            <command
+                  commandId="ir.ui.se.mdserg.e3mp.commands.mergingCommand"
+                  icon="icons/merge1.gif"
+                  id="ir.ui.se.mdserg.e3mp.menus.mergingCommand"
+                  label="Three-Way Merging"
+                  mnemonic="S">
+            </command>
+         </menu>
+      </menuContribution>
+   </extension>
+
+</plugin>

@@ -1,0 +1,133 @@
+pre define{
+ 	var Checked : Set ; 
+ 	var proName  ; 
+  	var parClass ; 
+ }
+ 
+context Base!Property {
+  guard
+  {
+
+	  	if(self.name.isDefined() and 
+	  		Base!Generalization.all->exists(c|c.owner.name == self.owner.name)
+	  		and (not Checked->includes(self.name)))
+	  		{
+	  			proName = self.name ;
+	  			parClass = Base!Generalization.all.selectOne(c|c.owner.name == self.owner.name).general.name ; 
+		  		Checked.add(self.name) ; 
+	  			return true ;
+	  		}
+	  		else
+	  			return false ; 	 
+  }
+ 
+ 
+  constraint InheritedProperty{   
+    check{
+    		var LPNRCh = false ; 
+    		var LP = false ; 
+			if(Left!Property.all->exists(t|t.owner.name == parClass))	
+			{
+				LP = true ; 
+			}
+			var RCh = true ; 
+			for(R_Ch in Right!Generalization.all.select(t|t.general.name == parClass))
+			{
+				if(not(R_Ch.owner.ownedAttribute.exists(p|p.name == proName)))
+					RCh = false ; 
+			}
+			
+			if(LP == true and RCh == false)
+				LPNRCh = true ; 
+    		var RPNLCh = false ; 
+    		var RP = false ; 
+			if(Right!Property.all->exists(t|t.owner.name == parClass))	
+			{
+				RP = true ; 
+			}
+			var LCh = true ; 
+			for(L_Ch in Left!Generalization.all.select(t|t.general.name == parClass))
+			{
+				if(not(L_Ch.owner.ownedAttribute.exists(p|p.name == proName)))
+					LCh = false ; 
+			}			
+			if(RP == true and LCh == false)
+				RPNLCh = true ; 
+			if((LPNRCh==true) xor (RPNLCh==true))
+			{
+				if(RP==true)
+				{
+					for(vRP in Right!Property.all->select(t|t.owner.name == parClass and t.name == proName))	
+					{
+						for(vRG in Right!Generalization.all->select(g|g.general.name == parClass))
+						{
+							for(vRCh in Right!Class.all->select(c|c.name == vRG.owner.name))
+							{
+								if(Left!Property.all->exists(p|p.name == proName and p.owner.name == vRCh.name)
+									or (not Left!Class.all->exists(p|p.name == vRCh.name)))								
+								{									
+									var n : new Right!Property ; 
+									n.name = vRP.name ; 
+									n.type = vRP.type ;
+									n.Lower = vRP.Lower ; 
+									n.Upper = vRP.Upper ; 
+									n.Aggregation = vRP.Aggregation ;	 
+									vRCh.ownedAttributes.add(n);
+								}
+							}
+						}
+						delete vRP ; 
+					}  
+				}
+				else if(LP == true)
+				{
+					for(vLP in Left!Property.all->select(t|t.owner.name == parClass and t.name == proName))	
+					{
+						for(vLG in Left!Generalization.all->select(g|g.general.name == parClass))
+						{
+							for(vLCh in Left!Class.all->selectOne(c|c.name == vLG.owner.name))
+							{
+								if(Right!Property.all->exists(p|p.name == proName and p.owner.name == vLCh.name)
+								  or (not Right!Class.all->exists(p|p.name == vLCh.name)))	
+								{
+									var n : new Left!Property ; 
+									n.name = vLP.name ; 
+									n.type = vLP.type ;
+									n.Lower = vLP.Lower ; 
+									n.Upper = vLP.Upper ; 
+									n.Aggregation = vLP.Aggregation ;
+									 
+									vLCh.ownedAttributes.add(n);
+								}
+							}
+						}
+						
+						delete vLP ;
+					} 
+				}
+				return false ;
+			}
+			else
+			{
+				return true ; 
+			}
+
+    }
+  /*  message: "Inherited property should delete!"
+    
+   fix {
+      title: "Delete" + self.name + " in " + parClass + " : "
+      do {
+			for(RP in Right!Property.all->select(t|t.owner.name == parClass and t.name == proName))	
+			{
+				delete RP ; 
+			}  
+			for(LP in Left!Property.all->select(t|t.owner.name == parClass and t.name == proName))	
+			{
+				delete LP ; 
+			}       
+      }
+    }*/
+    
+  }
+}
