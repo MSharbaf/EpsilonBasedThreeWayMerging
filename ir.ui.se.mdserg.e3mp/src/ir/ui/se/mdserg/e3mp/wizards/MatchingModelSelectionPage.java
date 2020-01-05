@@ -64,7 +64,7 @@ public class MatchingModelSelectionPage extends WizardPage {
     protected MatchingModelSelectionPage(String pageName) {
              super(pageName);
              setTitle("Model Selection");
-             setDescription("Please select required files");
+             setDescription("Please select required files ...");
     }
 	
 	@Override

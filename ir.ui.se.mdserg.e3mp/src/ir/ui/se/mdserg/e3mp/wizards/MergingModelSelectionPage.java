@@ -66,8 +66,8 @@ public class MergingModelSelectionPage extends WizardPage {
 	
     protected MergingModelSelectionPage(String pageName) {
              super(pageName);
-             setTitle("Model Selection");
-             setDescription("Please select required files");
+             setTitle("Reconciliation Phase: Model Selection");
+             setDescription("Please select required files ...");
              
     }
 	

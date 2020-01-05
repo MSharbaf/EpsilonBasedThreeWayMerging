@@ -95,12 +95,12 @@ public class ProjectSelectionWizardPage extends WizardPage {
 	public void dialogChanged() {
 		//if there aren't any projects
 		if (getProjectsInWorkspace().isEmpty()) {
-			updateStatus("No projects exist in the workspace ...");
+			updateStatus("There isn't any project in the workspace ...");
 			return;
 		}
 		
 		if (this.selectedProject == null) {
-			updateStatus("A project must be specified ...");
+			updateStatus("A project has to be selected ...");
 			return;
 		}
 		

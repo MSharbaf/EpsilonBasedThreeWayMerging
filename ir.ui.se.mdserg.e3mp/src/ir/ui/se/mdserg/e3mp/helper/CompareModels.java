@@ -1,6 +1,5 @@
 package ir.ui.se.mdserg.e3mp.helper;
 
-import java.awt.Frame;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -35,34 +34,13 @@ public class CompareModels {
 	public MatchTrace matchTraces ; 
 	
 	
-//	public CompareModels(String metaModelPath, String baseModelPath, String baseModelAliases,
-//			String newVersionPath, String newVersionAliases, String eclFilePath ){
-
 	public CompareModels(InMemoryEmfModel baseModel,InMemoryEmfModel newVersion, String eclFilePath ){
-
-//		InMemoryEmfModel baseModel = null ; 
-//		InMemoryEmfModel newVersion = null ; 
-//		
-		
+	
 		try {
-//			if(metaModelPath == null){
-//				baseModel = getUmlModel("Base", new File(baseModelPath));		
-//				newVersion = getUmlModel("NewVersion", new File(newVersionPath)) ; 
-//			}else{
-//				baseModel = (InMemoryEmfModel)getEmfModel("Base", baseModelPath, metaModelPath, true, false) ; 
-//				newVersion = (InMemoryEmfModel)getEmfModel("NewVersion", newVersionPath, metaModelPath, true, false) ; 
-//			}
-			
-//			baseModel.setName(baseModelAliases);
-//			newVersion.setName(newVersionAliases);
-			
 			EclModule eclModule = new EclModule();
-//			eclModule.parse(URI.createFileURI(eclFilePath).toString()) ; 
-			String st = URI.createFileURI(eclFilePath).toString(); 
 			eclFilePath = eclFilePath.replaceAll("\\\\", "/");
 			java.net.URI eclURI = java.net.URI.create("file:/"+eclFilePath) ; 
 			eclModule.parse(eclURI) ; 
-		//	eclModule.parse(EpsilonStandalone.class.getResource(eclFile).toURI());
 			eclModule.getContext().getModelRepository().addModel(baseModel);
 			eclModule.getContext().getModelRepository().addModel(newVersion);
 			eclModule.execute();
@@ -77,12 +55,9 @@ public class CompareModels {
 	public CompareModels(IModel baseModel,IModel newVersion, String eclFilePath ){
 		try {
 			EclModule eclModule = new EclModule();
-//			eclModule.parse(URI.createFileURI(eclFilePath).toString()) ; 
-			String st = URI.createFileURI(eclFilePath).toString(); 
 			eclFilePath = eclFilePath.replaceAll("\\\\", "/");
 			java.net.URI eclURI = java.net.URI.create("file:/"+eclFilePath) ; 
 			eclModule.parse(eclURI) ; 
-		//	eclModule.parse(EpsilonStandalone.class.getResource(eclFile).toURI());
 			eclModule.getContext().getModelRepository().addModel(baseModel);
 			eclModule.getContext().getModelRepository().addModel(newVersion);
 			eclModule.execute();
@@ -94,20 +69,6 @@ public class CompareModels {
 		}
 	}
 	
-//	public MatchTrace Comparison(IModel leftModel, IModel rightModel, String eclFile) throws Exception {
-//		leftModel.setName("Left");
-//		rightModel.setName("Right");
-//		EclModule eclModule = new EclModule();
-//		java.net.URI b = java.net.URI.create(eclFile) ; 
-//		eclModule.parse(b) ; 
-//	//	eclModule.parse(EpsilonStandalone.class.getResource(eclFile).toURI());
-//		eclModule.getContext().getModelRepository().addModel(leftModel);
-//		eclModule.getContext().getModelRepository().addModel(rightModel);
-//		eclModule.execute();
-//
-//		MatchTrace Matched = eclModule.getContext().getMatchTrace(); 
-//		return Matched ; 
-//	}
 	
 	public MatchTrace delNullmatch(List<Match> matches) { 
 		MatchTrace reduced = new MatchTrace();
@@ -225,11 +186,8 @@ public class CompareModels {
 				String lOwnerType = "" ;
 				for (EObject rawElement : leftModel.getAllOfKind(classType)) {
 					org.eclipse.uml2.uml.Element umlElement = (org.eclipse.uml2.uml.Element)rawElement;
-					//org.eclipse.uml2.uml.NamedElement umlElement = (org.eclipse.uml2.uml.NamedElement)rawElement;
 					if(firstMatch.getLeft().equals(umlElement)){
-	//				if(lName.equals(umlElement.getName())){
 						lOwnerName = getMatchParameter(umlElement.getOwner().toString(), "name") ; 
-					 //   System.out.println("New name: " + umlElement.getOwner());
 					    lOwnerType = umlElement.getOwner().getClass().getSimpleName() ; 
 					    lOwnerType = lOwnerType.replace("Impl","") ; 
 					    break ;
@@ -256,11 +214,8 @@ public class CompareModels {
 						String rOwnerType = "" ;
 						for (EObject rawElement : rightModel.getAllOfKind(classType)) {
 							org.eclipse.uml2.uml.Element umlElement = (org.eclipse.uml2.uml.Element)rawElement;
-							//org.eclipse.uml2.uml.NamedElement umlElement = (org.eclipse.uml2.uml.NamedElement)rawElement;
 							if(iMatch.getRight().equals(umlElement)){
-		//					if(rName.equals(umlElement.getName())){
 								rOwnerName = getMatchParameter(umlElement.getOwner().toString(), "name") ; 
-							//    System.out.println("New name: " + umlElement.getOwner());
 							    rOwnerType = umlElement.getOwner().getClass().getSimpleName() ; 
 							    rOwnerType = rOwnerType.replace("Impl","") ; 
 							    break ; 
@@ -278,25 +233,15 @@ public class CompareModels {
 				}
 				
 				if(StList.size() > 1){
-				//	WaitForGUI userInteractionGUI = new WaitForGUI("Which one is equivalent to this?",leftSt, StList);
-				//	String message = userInteractionGUI.getStringFromGUI() ; 
 					
-					System.out.println("Befooorrrrrrrrr") ; 
-					
-				   IWorkbench wb = PlatformUI.getWorkbench();
-				   IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-//					   IWorkbenchPage page = win.getActivePage();
-					
+					IWorkbench wb = PlatformUI.getWorkbench();
+				   	IWorkbenchWindow win = wb.getActiveWorkbenchWindow();					
 					UserInterDialog UD = new UserInterDialog(win.getShell(),"Which one is equivalent to { ",leftSt, StList) ;
-//					UserInterDialog UD = new UserInterDialog(win.getShell(),"Which one is equivalent to {" + leftSt + " }", StList) ;
 
 					UD.open() ; 
 					
 					String message = UD.result ; 
-					
-					System.out.println("Afterrrrrrrrrrrrrr");
-
-					
+										
 				    for (int j = 0; j < tmpList.size(); j++) {
 						if(tmpList.get(j).equals(message))
 						{
@@ -326,13 +271,6 @@ public class CompareModels {
 	
 	public String getMatchParameter(String matchString, String parameter)
 	{
-/*		int start = matchString.indexOf(parameter) ; 
-		int end = matchString.indexOf(",") ;
-		int len = parameter.length() ;
-		len = len + 2 ; 
-		String res = matchString.substring(start + len , end);
-		return res ; */
-		
 		int start = matchString.indexOf(parameter) ;
 		matchString = matchString.substring(start) ; 
 		int end = matchString.indexOf(",") ; 
@@ -347,34 +285,14 @@ public class CompareModels {
 		String classType = EachMatch1.getLeft().getClass().getSimpleName() ; 
 		classType = classType.replace("Impl", "") ;
 		
-//		String oldName = getMatchParameter(EachMatch1.getRight().toString(), "name") ;   
 		String newName = getMatchParameter(EachMatch2.getRight().toString(), "name") ;
 		for (EObject rawElement : Model.getAllOfKind(classType)) {
 			org.eclipse.uml2.uml.NamedElement umlElement = (org.eclipse.uml2.uml.NamedElement) rawElement ; 
 			if (EachMatch1.getRight().equals(umlElement)) {				
-			//	System.out.println("Old name: " + umlElement.getName());
 				umlElement.setName(newName);
-			//	System.out.println("New name: " + umlElement.getName());
 			}
 		}
 		
 	}
-
-	
-//	protected EmfModel getEmfModelByURI(String name, String model, 
-//			String metamodel, boolean readOnLoad, boolean storeOnDisposal) 
-//					throws EolModelLoadingException, URISyntaxException {
-//		EmfModel emfModel = new EmfModel();
-//		StringProperties properties = new StringProperties();
-//		properties.put(EmfModel.PROPERTY_NAME, name);
-//		properties.put(EmfModel.PROPERTY_METAMODEL_URI, metamodel);
-//		properties.put(EmfModel.PROPERTY_MODEL_URI,URI.createFileURI(model).toString());
-//		properties.put(EmfModel.PROPERTY_READONLOAD, readOnLoad + "");
-//		properties.put(EmfModel.PROPERTY_STOREONDISPOSAL, 
-//				storeOnDisposal + "");
-//		emfModel.load(properties, (IRelativePathResolver) null);
-//		return emfModel;
-//	}
-
 
 }

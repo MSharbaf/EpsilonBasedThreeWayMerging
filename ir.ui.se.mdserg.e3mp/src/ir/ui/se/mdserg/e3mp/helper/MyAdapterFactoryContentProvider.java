@@ -161,11 +161,6 @@ public class MyAdapterFactoryContentProvider
   }
   
   
-//public Object[] getRootElement(Object object)
-//{
-//  return (Object[]) object  ; 
-//}
-
   /**
    * This implements {@link org.eclipse.jface.viewers.ITreeContentProvider}.getChildren to forward the call to an object that implements 
    * {@link org.eclipse.emf.edit.provider.ITreeItemContentProvider#getChildren ITreeItemContentProvider.getChildren}.

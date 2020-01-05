@@ -5,7 +5,7 @@
    <extension
          point="org.eclipse.ui.commands">
       <category
-            description="Creating a Process for 3-way Merging"
+            description="A Customizable Process for 3-way Model Merging"
             id="ir.ui.se.mdserg.e3mp.commands.category"
             name="E3MP">
       </category>
@@ -47,7 +47,7 @@
       <menuContribution
             locationURI="menu:org.eclipse.ui.main.menu?after=additions">
          <menu
-               label="EpsilonThree-wayMerging"
+               label="E3MP"
                mnemonic="M"
                id="ir.ui.se.mdserg.e3mp.menus.sampleMenu">
             <command

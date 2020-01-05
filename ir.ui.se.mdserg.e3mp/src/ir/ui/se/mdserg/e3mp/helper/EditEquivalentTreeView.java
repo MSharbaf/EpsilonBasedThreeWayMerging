@@ -7,20 +7,18 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.ecore.provider.EcoreItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
-import org.eclipse.emf.edit.provider.IItemLabelProvider;
-import org.eclipse.emf.edit.provider.ITreeItemContentProvider;
 import org.eclipse.emf.edit.provider.ReflectiveItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.resource.ResourceItemProviderAdapterFactory;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider;
 import org.eclipse.epsilon.ecl.trace.MatchTrace;
 import org.eclipse.epsilon.emc.emf.EmfModel;
-import org.eclipse.epsilon.emc.emf.InMemoryEmfModel;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
@@ -40,31 +38,27 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.graphics.Color;
 
-public class EditEquivalentTreeView extends Dialog {
+public class EditEquivalentTreeView extends TitleAreaDialog{ // Dialog {
 	public EmfModel Model1 ; 
 	public EmfModel Model2 ;
 	public String MMpath ; 
 	public IProject selectedProject ; 
 	public MatchTrace Matched; 
 	public Point initPoint ; 
-	public ArrayList<MatchMember> allmatchList, matchMemberList ; 
+	public ArrayList<MatchMember> allmatchList, matchMemberList, delMemberList1 ; 
 	public TreeItem previousMatchedItem ; 
 	TreeViewer viewer1 , viewer2 ;
-	List<TreeItem> v1MatchList, v2MatchList, v1UnMatchList, v2UnMatchList , v1UnMatchResList, v2UnMatchResList; 
-	List<TreeItem> predictedPotentialItems ; 
-//	public int[] Decision ; 
+	List<TreeItem> v1MatchList, v2MatchList, v1UnMatchList, v2UnMatchList , v1UnMatchResList, v2UnMatchResList, v1DelList; 
+	List<TreeItem> predictedPotentialItems ;  
 	public List<Integer> Decision ;
 	
 	
-	private static final Class<?> IItemLabelProviderClass = IItemLabelProvider.class;
-	private static final Class<?> ITreeItemContentProviderClass = ITreeItemContentProvider.class;
-
 	
 	/**
 	 * Create the dialog.
 	 */
-	public EditEquivalentTreeView(Shell parentShell, EmfModel baseM, EmfModel newM, 
-			String MMpath, IProject selectedProject, ArrayList<MatchMember> allmatchList, ArrayList<MatchMember> matchMemberList){
+	public EditEquivalentTreeView(Shell parentShell, EmfModel baseM, EmfModel newM, String MMpath, IProject selectedProject, 
+			ArrayList<MatchMember> allmatchList, ArrayList<MatchMember> matchMemberList, ArrayList<MatchMember> delMemberList1){
 		super(parentShell);
 		this.Model1 = baseM ;
 		this.Model2 = newM ; 
@@ -72,9 +66,28 @@ public class EditEquivalentTreeView extends Dialog {
 		this.selectedProject = selectedProject ; 
 		this.allmatchList = allmatchList ; 
 		this.matchMemberList = matchMemberList ; 
+		this.delMemberList1 = delMemberList1 ; 
 		this.initPoint = parentShell.getLocation() ; 
 		this.previousMatchedItem = null ; 
 	}
+	
+    @Override
+    public void create() {
+        super.create();
+        setTitle("Choose Your Choice for Equivalent Elements, Otherwise, the Element of Right Version is Chosen Automatically ...");
+          
+        StringBuffer text = new StringBuffer();
+          text.append("Elements Color Guideline:") ; 
+          text.append("   \u2022 Black: Auto Matched Elements");
+          text.append("    \u2022 Yellow: Equivalent Elements");
+          text.append("    \u2022 Violet: Without Matched Elements\n");
+          text.append("\u2022 Gray: Concurrently Deleted");
+          text.append("    \u2022 Green: Accepted in EquiCase ");
+          text.append("    \u2022 Red: Rejected in EquiCase ");
+          text.append("    \u2022 Orange: Potential Similar Elements");
+          
+        setMessage(text.toString(),IMessageProvider.INFORMATION) ;
+    }
 	
     @Override
     protected Control createDialogArea(Composite parent) {
@@ -89,14 +102,12 @@ public class EditEquivalentTreeView extends Dialog {
 		factories.add(new ReflectiveItemProviderAdapterFactory());
 		 
 		ComposedAdapterFactory composedAdapterFactory ; 
-	    IItemLabelProvider itemLabelProvider  ;  
-	    ITreeItemContentProvider treeItemContentProvider ;
 
 		if(MMpath == null)
 			composedAdapterFactory = new ComposedAdapterFactory(ComposedAdapterFactory.Descriptor.Registry.INSTANCE);
 		else
 			composedAdapterFactory = new ComposedAdapterFactory(factories);
-    	AdapterFactory adapterFactory = composedAdapterFactory;
+
 
 	    ///////////////////////////////////////////////////////////////////////////////////////////////    
 	    
@@ -136,20 +147,21 @@ public class EditEquivalentTreeView extends Dialog {
 		
 		v1MatchList = new ArrayList<TreeItem>();
 		v2MatchList = new ArrayList<TreeItem>();
+		v1DelList = new ArrayList<TreeItem>();
 		v1UnMatchList = new ArrayList<TreeItem>();
 		v2UnMatchList = new ArrayList<TreeItem>();
 		v1UnMatchResList = new ArrayList<TreeItem>();
 		v2UnMatchResList = new ArrayList<TreeItem>();
 		
-		initMatchingList(v1AllItems, v2AllItems, allmatchList, matchMemberList);
+		initMatchingList(v1AllItems, v2AllItems, allmatchList, matchMemberList, delMemberList1);
 		
 		viewer1.refresh();
 		viewer2.refresh();
 		
 		Display display = Display.getCurrent();
-		Color VioletColor = new Color(display, 200, 0, 200);
 		Color YellowColor = new Color(display, 225, 225, 0);
 		Color RedColor = new Color(display,255, 0, 0);
+		Color OrangeColor = new Color(display,255,128,0);
 		Color GreenColor = new Color(display,0, 160, 40);
 		Color BlackColor = new Color(display,0, 0, 0);
 		
@@ -174,7 +186,10 @@ public class EditEquivalentTreeView extends Dialog {
         		
             	int index = v1MatchList.indexOf(selectedItem); 
             	int indexUn = v1UnMatchList.indexOf(selectedItem) ; 
-            	if(index != -1){
+            	int indexDel = v1DelList.indexOf(selectedItem) ;
+            	if(indexDel != -1){
+            		createContextMenu3(viewer1) ;
+            	}else if(index != -1){
             		if(Decision.get(index)==0){
                    		v2MatchList.get(index).setForeground(YellowColor);
             		} else if(Decision.get(index)==1){
@@ -185,15 +200,27 @@ public class EditEquivalentTreeView extends Dialog {
         			previousMatchedItem = v2MatchList.get(index) ; 
                 	viewer2.refresh();
             		createContextMenu(viewer2, v1MatchList.get(index), v2MatchList.get(index)) ; 
-//            		createContextMenu(viewer1, v1MatchList.get(index), v2MatchList.get(index)) ;
             	}else if(indexUn != -1){
-//            		int indexUnRes = v1UnMatchResList.indexOf(selectedItem) ; 
-//            		if(indexUnRes!=-1)
-//            			v2UnMatchResList.get(indexUnRes).setForeground(GreenColor);
-//            		else{
-	            		// search for potential equivalent items 
 	                    predictedPotentialItems = new ArrayList<TreeItem>();
 	        			
+	    				TreeItem selectedItemParentMatchinV2 = null ; 
+	        			int SI_index = v1AllItems.indexOf(selectedItem) ; 
+	        			if(SI_index != -1){
+	        				TreeItem selectedItemParent = v1AllItems.get(SI_index).getParentItem() ; 
+	        				if(selectedItemParent != null){
+	        					int SI2_index = v1MatchList.indexOf(selectedItemParent) ; 
+	        					if(SI2_index != -1)
+	        						selectedItemParentMatchinV2 = v2MatchList.get(SI2_index) ; 
+	        					else {
+	        						for(int k=0; k<v2AllItems.size(); k++)
+	        							if(v2AllItems.get(k).getText().equals(selectedItemParent.getText())) {
+	        								selectedItemParentMatchinV2 = v2AllItems.get(k); 
+	        								break ;
+	        							}
+	        					}
+	        				}
+	        			}
+	                    
 	        			String sType = "" ; 
 	        			if(Model1.getModelImpl().getURI().toString().contains(".uml")){
 	        				sType = selectedItem.getText().split(">")[0] ;
@@ -202,10 +229,18 @@ public class EditEquivalentTreeView extends Dialog {
 	        			
 	            		for(int j=0; j<v2UnMatchList.size(); j++)
 	            		{
-	        				if(v2UnMatchList.get(j).getText().contains(sType)) {
-	            				predictedPotentialItems.add(v2UnMatchList.get(j)) ;
-	            				v2UnMatchList.get(j).setForeground(RedColor);
-	        				}
+	            			if(selectedItemParentMatchinV2 == null){
+	            				if(v2UnMatchList.get(j).isDisposed()==false && v2UnMatchList.get(j).getText().contains(sType)){
+		            				predictedPotentialItems.add(v2UnMatchList.get(j)) ;
+		            				v2UnMatchList.get(j).setForeground(OrangeColor);
+	            				}
+	                			
+	            			}else{	            			
+		        				if(v2UnMatchList.get(j).isDisposed()==false && v2UnMatchList.get(j).getText().contains(sType) && v2UnMatchList.get(j).getParentItem().equals(selectedItemParentMatchinV2)) {
+		            				predictedPotentialItems.add(v2UnMatchList.get(j)) ;
+		            				v2UnMatchList.get(j).setForeground(OrangeColor);
+		        				}
+	            			}
 	            		}
 	            		createContextMenu2(viewer2) ; 
 //            		}
@@ -239,26 +274,14 @@ public class EditEquivalentTreeView extends Dialog {
             public void run() {
     			Display display = Display.getCurrent();
             	Color GreenColor = new Color(display,0, 160, 40);
-//             	Color BlackColor = new Color(display,0, 0, 0);
             	Color RedColor = new Color(display,255, 0, 0);
-//            	Color VioletColor = new Color(display, 200, 0, 200);
-            	
-//            	TreeItem[] v2Selection = viewer2.getTree().getSelection() ;
-//            	TreeItem TIV2 = v2Selection[0] ;
-//
-//            	TreeItem[] v1Selection = viewer1.getTree().getSelection() ;
-//            	TreeItem TIV1 = v1Selection[0] ;
-                       
+            	                       
         		int Index = v2MatchList.indexOf(TIV2) ; 
         		if(Index != -1){
         			v1MatchList.get(Index).setForeground(GreenColor);
         			v2MatchList.get(Index).setForeground(RedColor);
         			Decision.set(Index,1); 
-//        			v1MatchList.remove(delIndex) ;
-//        			v2MatchList.remove(delIndex) ; 
-        		}
-            	
-//            	viewer1.setSelection(StructuredSelection.EMPTY);
+        		}            	
             	viewer2.setSelection(StructuredSelection.EMPTY);	
             	viewer1.refresh();
             	viewer2.refresh();
@@ -269,9 +292,7 @@ public class EditEquivalentTreeView extends Dialog {
             @Override
             public void run() {
     			Display display = Display.getCurrent();
-//            	Color VioletColor = new Color(display, 200, 0, 200);
             	Color GreenColor = new Color(display,0, 160, 40);
-//             	Color BlackColor = new Color(display,0, 0, 0);
             	Color RedColor = new Color(display,255, 0, 0);
                        
         		int Index = v2MatchList.indexOf(TIV2) ; 
@@ -281,19 +302,18 @@ public class EditEquivalentTreeView extends Dialog {
         			Decision.set(Index, 2) ; 
         		}
             	
-//            	viewer1.setSelection(StructuredSelection.EMPTY);
             	viewer2.setSelection(StructuredSelection.EMPTY);	
             	viewer1.refresh();
             	viewer2.refresh();
             }
         });
         
-        contextMenu.add(new Action("Remove Exsited Match") {
+        contextMenu.add(new Action("Remove Existing Match") {
             @Override
             public void run() {
     			Display display = Display.getCurrent();
              	Color BlackColor = new Color(display,0, 0, 0);
-            	Color VioletColor = new Color(display, 200, 0, 200);
+            	Color VioletColor = new Color(display, 190, 0, 190);
             	
             	TreeItem[] v2Selection = viewer2.getTree().getSelection() ;
             	TreeItem TIV2 = v2Selection[0] ;
@@ -311,18 +331,7 @@ public class EditEquivalentTreeView extends Dialog {
         			v1MatchList.remove(delIndex) ;
         			v2MatchList.remove(delIndex) ; 
         		}
-        		
-//        		int delUnIndex = v2UnMatchResList.indexOf(TIV2) ;
-//        		if(delUnIndex != -1){
-//        			v1UnMatchResList.get(delUnIndex).setForeground(BlackColor);
-//        			v2UnMatchResList.get(delUnIndex).setForeground(BlackColor);
-//        			v1UnMatchResList.remove(TIV1) ;
-//        			v2UnMatchResList.remove(TIV2) ;
-//        			v1UnMatchList.add(TIV1) ;
-//        			v2UnMatchList.add(TIV2) ;
-//        			
-//        		}
-        		
+        		        		
              	previousMatchedItem = null ; 
             	
             	viewer2.setSelection(StructuredSelection.EMPTY);
@@ -356,9 +365,7 @@ public class EditEquivalentTreeView extends Dialog {
             @Override
             public void run() {
     			Display display = Display.getCurrent();
-            	Color GreenColor = new Color(display,0, 160, 40);
-             	Color BlackColor = new Color(display,0, 0, 0);
-            	Color RedColor = new Color(display,255, 0, 0);
+            	Color BlackColor = new Color(display,0, 0, 0);
             	Color YellowColor = new Color(display, 225, 225, 0);
             	
             	TreeItem[] v2Selection = viewer2.getTree().getSelection() ;
@@ -366,32 +373,16 @@ public class EditEquivalentTreeView extends Dialog {
 
             	TreeItem[] v1Selection = viewer1.getTree().getSelection() ;
             	TreeItem TIV1 = v1Selection[0] ;
-                       
-//        		int delIndex = v2MatchList.indexOf(TIV2) ; 
-//        		if(delIndex != -1){
-//        			v1MatchList.get(delIndex).setForeground(BlackColor);
-//        			v2MatchList.get(delIndex).setForeground(BlackColor);
-//        			v1MatchList.remove(delIndex) ;
-//        			v2MatchList.remove(delIndex) ; 
-//        		}
         		
             	int index = v1MatchList.indexOf(TIV1) ;
             	if(index == -1){
-//            		v1UnMatchResList.add(TIV1) ;
-//            		v2UnMatchResList.add(TIV2) ;
             		v1MatchList.add(TIV1) ;
             		v2MatchList.add(TIV2) ;
             		Decision.add(0) ;
             		
             		v2UnMatchList.remove(TIV2) ;
             	}
-            	
-//            	else{
-//            		v2MatchList.get(index).setForeground(BlackColor);
-//            		v2AllItems.add(TIV2) ; 
-//            		v2MatchList.set(index, TIV2) ;
-//            	}
-            	
+            	            	
             	if(previousMatchedItem != null){
             		previousMatchedItem.setForeground(BlackColor);
             	}
@@ -417,6 +408,61 @@ public class EditEquivalentTreeView extends Dialog {
     }
     
     
+    protected void createContextMenu3(TreeViewer viewer) {
+        MenuManager contextMenu = new MenuManager("#ViewerMenu"); //$NON-NLS-1$
+        contextMenu.setRemoveAllWhenShown(true);
+       
+        contextMenu.addMenuListener(new IMenuListener() {
+            @Override
+            public void menuAboutToShow(IMenuManager mgr) {
+                fillContextMenu3(mgr);
+            }
+        });
+
+        Menu menu = contextMenu.createContextMenu(viewer.getControl());
+        viewer.getControl().setMenu(menu);
+    }
+
+    protected void fillContextMenu3(IMenuManager contextMenu) {
+        contextMenu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
+
+        contextMenu.add(new Action("Keep in the Merged Version") {
+            @Override
+            public void run() {
+    			Display display = Display.getCurrent();
+             	Color BlackColor = new Color(display,0, 0, 0);
+    			Color VioletColor = new Color(display, 190, 0, 190);
+
+    			TreeItem[] v1Selection = viewer1.getTree().getSelection() ;
+            	TreeItem TIV1 = v1Selection[0] ;
+                               		
+            	int index = v1DelList.indexOf(TIV1) ;
+            	if(index != -1){
+            		v1UnMatchList.add(TIV1) ;            		
+            		v1DelList.remove(TIV1) ;
+            	}
+            	
+            	if(previousMatchedItem != null){
+            		previousMatchedItem.setForeground(BlackColor);
+            	}
+            	if(predictedPotentialItems != null){
+            		for(int k=0; k<predictedPotentialItems.size(); k++){
+            			predictedPotentialItems.get(k).setForeground(BlackColor);
+            		}
+            		predictedPotentialItems.clear();
+            		predictedPotentialItems = null ; 
+            	}
+            	
+            	TIV1.setForeground(VioletColor);
+            	            	
+            	viewer1.setSelection(StructuredSelection.EMPTY);
+                	
+            	viewer1.refresh();
+            	viewer2.refresh();
+            }
+        });
+    }
+    
     
     void getAllItems(Tree tree, List<TreeItem> allItems)
     {
@@ -441,13 +487,26 @@ public class EditEquivalentTreeView extends Dialog {
     
     //aList is all matched elements
     //mList is matched element that two modification occurred on one element in Base version 
-    void initMatchingList(List<TreeItem> v1, List<TreeItem> v2, ArrayList<MatchMember> aList, ArrayList<MatchMember> mList)
+    void initMatchingList(List<TreeItem> v1, List<TreeItem> v2, ArrayList<MatchMember> aList, ArrayList<MatchMember> mList, ArrayList<MatchMember> delList1)
     {
   //  	for all V1 elements check aList
     	TreeItem TIV = null ;
 		for(int j=0; j<v1.size(); j++)
 		{
 			boolean flag = true ; 
+			for(int i=0; i<delList1.size(); i++)
+			{
+				if(v1.get(j).getText().equals(delList1.get(i).getLeftText()) && (v1.get(j).getParentItem()== null 
+						|| v1.get(j).getParentItem().getText().equals(delList1.get(i).getLeftParent()))){
+					Display display = Display.getCurrent();
+	    			Color GrayColor = new Color(display, 192, 192, 192);
+	    			TIV = v1.get(j) ;
+	    			TIV.setForeground(GrayColor);
+	    			v1DelList.add(TIV) ; 
+					flag = false ; 
+					break ;
+				}
+			}
 			for(int i=0; i<aList.size(); i++)
 			{
 				if(v1.get(j).getText().equals(aList.get(i).getLeftText()) && (v1.get(j).getParentItem()== null 
@@ -463,6 +522,8 @@ public class EditEquivalentTreeView extends Dialog {
     			TIV.setForeground(VioletColor);
     			v1UnMatchList.add(TIV) ; 
     		}
+	   		
+	   		
 		}
     	
 		for(int j=0; j<v2.size(); j++)
@@ -482,11 +543,9 @@ public class EditEquivalentTreeView extends Dialog {
     		}
 		}
 		
-//    	Decision = new int[mList.size()] ; 
     	Decision = new ArrayList<Integer>() ; 
     	for(int i=0; i<mList.size(); i++)
     	{
-//    		Decision[i] = 0 ; 
     		Decision.add(0) ;
     		TreeItem TIV1 = null, TIV2 = null ;
     		for(int j=0; j<v1.size(); j++)
@@ -508,9 +567,7 @@ public class EditEquivalentTreeView extends Dialog {
     		if(TIV1!=null && TIV2!=null){
     			Display display = Display.getCurrent();
     			Color YellowColor = new Color(display, 225, 225, 0);
-//            	Color color = new Color(display,0, 160, 40);
     			TIV1.setForeground(YellowColor);
-//    			TIV2.setForeground(VioletColor);
     			v1MatchList.add(TIV1) ;
     			v2MatchList.add(TIV2) ;
     		}
@@ -561,7 +618,7 @@ public class EditEquivalentTreeView extends Dialog {
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
-        newShell.setText("Select the Value of Equivalent Items");
+        newShell.setText("Inference Window");
         newShell.setSize(800, 600);
         newShell.setLocation(300,50);
     }

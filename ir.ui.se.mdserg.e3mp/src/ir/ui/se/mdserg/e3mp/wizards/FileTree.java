@@ -60,9 +60,6 @@ public class FileTree extends ApplicationWindow {
   protected void configureShell(Shell shell) {
     super.configureShell(shell);
 
-    // Set the title bar text and the size
-//    shell.setText("File Tree");
-//    shell.setSize(400, 400);
   }
 
   /**

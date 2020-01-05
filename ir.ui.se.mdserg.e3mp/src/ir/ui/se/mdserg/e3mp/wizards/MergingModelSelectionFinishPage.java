@@ -16,8 +16,8 @@ public class MergingModelSelectionFinishPage extends WizardPage {
 
     protected MergingModelSelectionFinishPage(String pageName) {
              super(pageName);
-             setTitle("Merging Process is Fineshed");
-             setDescription("Your Merged model has been saved ...");
+             setTitle("Merging Process Finished Successfully!");
+             setDescription("The Merged model saved in the project directory ...");
     }
 	
 	@Override

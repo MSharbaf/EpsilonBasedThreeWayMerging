@@ -22,8 +22,8 @@ public class MatchingModelSelectionFinishPage extends WizardPage {
 
     protected MatchingModelSelectionFinishPage(String pageName) {
              super(pageName);
-             setTitle("Model Selection Fineshed");
-             setDescription("Your match list has been saved ...");
+             setTitle("Comparison Phase Finished Successfully!");
+             setDescription("The created Match-List saved in the project directory ...");
     }
 	
 	@Override

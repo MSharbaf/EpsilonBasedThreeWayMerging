@@ -10,9 +10,7 @@ import java.util.Collection;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.provider.EcoreItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
@@ -64,9 +62,8 @@ public class InferringScriptSelectionPage extends WizardPage {
 	public FileChooser BaseModelFC ; 
 	
 	public IProject selectedProject;
-//	public MergingModelSelectionPage MergingModelSelectionPage ; 
 	public MergingScriptSelectionPage MergingScriptSelectionPage ;
-	public ArrayList<MatchMember> MatchList1, MatchList2, InferedMatchList, AutoInferedMatch, UnEquMatchList, TempMatchList1;
+	public ArrayList<MatchMember> MatchList1, MatchList2, InferedMatchList, AutoInferedMatch, UnEquMatchList, DelMatchList1;
 	public EmfModel bModel, modelV1, modelV2;
 
 	private static final Class<?> IItemLabelProviderClass = IItemLabelProvider.class;
@@ -76,8 +73,8 @@ public class InferringScriptSelectionPage extends WizardPage {
 
     protected InferringScriptSelectionPage(String pageName) {
              super(pageName);
-             setTitle("Reconsilation Phase: Select Match Lists and Pattern Scripts");
-             setDescription("Please select required files");
+             setTitle("Reconciliation Phase: Select MatchLists and Pattern Scripts");
+             setDescription("Please select required files ...");
     }
 	
 	@Override
@@ -207,7 +204,7 @@ public class InferringScriptSelectionPage extends WizardPage {
 			InferedMatchList = new ArrayList<MatchMember>() ; 
 			AutoInferedMatch = new ArrayList<MatchMember>() ;
 			UnEquMatchList = new ArrayList<MatchMember>() ; 
-			TempMatchList1 = new ArrayList<MatchMember>() ; 
+			DelMatchList1 = new ArrayList<MatchMember>() ; 
 			for(int i=0; i<MatchList1.size(); i++)
 			{
 				int index = -1 ; 
@@ -234,14 +231,14 @@ public class InferringScriptSelectionPage extends WizardPage {
 				if(index != -1)
 					MatchList2.remove(index) ;
 				else
-					TempMatchList1.add(MatchList1.get(i)) ;	
+					DelMatchList1.add(MatchList1.get(i)) ;	
 			}
 			
 			// Show to user to select one of two options 
 			IWorkbench wb = PlatformUI.getWorkbench();
 		   	IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
 			EditEquivalentTreeView EETV = new EditEquivalentTreeView(win.getShell(), modelV1, modelV2, 
-					this.MetaModelFC.path, this.selectedProject , InferedMatchList, UnEquMatchList) ;
+					this.MetaModelFC.path, this.selectedProject , InferedMatchList, UnEquMatchList, DelMatchList1) ;
 			
 			EETV.open() ; 
 
@@ -250,12 +247,11 @@ public class InferringScriptSelectionPage extends WizardPage {
 		    ITreeItemContentProvider treeItemContentProvider ;
 	    	AdapterFactory adapterFactory = this.composedAdapterFactory;
 			
-//			long startTime = System.nanoTime();
 			long startTime = System.currentTimeMillis() ;
 	    	
 	    	// delete removed element in other model 
-			for(int i=0; i<TempMatchList1.size(); i++){		    	
-				String classType1 = TempMatchList1.get(i).getLeftText().split(" ")[0] ; 
+			for(int i=0; i<DelMatchList1.size(); i++){		    	
+				String classType1 = DelMatchList1.get(i).getLeftText().split(" ")[0] ; 
 				classType1 = classType1.replace("<","") ;
 				classType1 = classType1.replace(">","") ;
 				try {					
@@ -267,21 +263,12 @@ public class InferringScriptSelectionPage extends WizardPage {
 					    Object Parent = treeItemContentProvider.getParent(modelV1Element) ; 
 					    itemLabelProvider = (IItemLabelProvider)adapterFactory.adapt(Parent, IItemLabelProviderClass);
 					   
-					    if(Parent==null && TempMatchList1.get(i).getLeftText().contains(Text)){
+					    if(Parent==null && DelMatchList1.get(i).getLeftText().contains(Text)){
 					    	try {
 					    		
 					    		for(EObject eo : modelV1Element.eContents()){
 					    			modelV1.deleteElement(eo);
 					    		}
-//					    		for(EObject eo : modelV1Element.eCrossReferences()){
-//					    			modelV1.deleteElement(eo);
-//					    		}
-//					    		if(classType1.equals("EClass")){
-//					    			EClass ec = (EClass) modelV1Element ;
-//					    			
-//					    			for(EObject er : ec.getEAllReferences())
-//					    				modelV1.deleteElement(er);
-//					    		}
 					    		
 								modelV1.deleteElement(modelV1Element);
 								
@@ -292,21 +279,12 @@ public class InferringScriptSelectionPage extends WizardPage {
 					    	break ; 
 					    }else{  		
 					    	String ParentText = itemLabelProvider.getText(Parent);					    
-						    if(TempMatchList1.get(i).getLeftText().equals(Text) && (TempMatchList1.get(i).getLeftParent().equals("File") || TempMatchList1.get(i).getLeftParent().equals(ParentText))){
+						    if(DelMatchList1.get(i).getLeftText().equals(Text) && (DelMatchList1.get(i).getLeftParent().equals("File") || DelMatchList1.get(i).getLeftParent().equals(ParentText))){
 						    	try {
 						    								    	
 						    		for(EObject eo : modelV1Element.eContents()){
 						    			modelV1.deleteElement(eo);
 						    		}
-//						    		for(EObject eo : modelV1Element.eCrossReferences()){
-//						    			modelV1.deleteElement(eo);
-//						    		}
-//						    		if(classType1.equals("EClass")){
-//						    			EClass ec = (EClass) modelV1Element ;
-//						    			
-//						    			for(EObject er : ec.getEAllReferences())
-//						    				modelV1.deleteElement(er);
-//						    		}
 						    		
 									modelV1.deleteElement(modelV1Element);
 								} catch (EolRuntimeException e) {
@@ -379,39 +357,9 @@ public class InferringScriptSelectionPage extends WizardPage {
 			
 			performAllEdits(modelV1, modelV2, AutoInferedMatch) ;
 			
-//			long endTime   = System.nanoTime();
 			long endTime   = System.currentTimeMillis() ; 
 			long totalTime = endTime - startTime;
 			System.out.println("Inferring time is : " + totalTime + " in nano second ...");
-/*			
-			System.out.println("All tasks are done ...") ; 
-			System.out.println("Version1:") ;
-			for (Object modelV1Element : modelV1.allInstances()) {
-			    itemLabelProvider = (IItemLabelProvider)adapterFactory.adapt(modelV1Element, IItemLabelProviderClass);
-			    String leftText =    itemLabelProvider.getText(modelV1Element) ; 
-			    		   
-			    treeItemContentProvider = (ITreeItemContentProvider)adapterFactory.adapt(modelV1Element, ITreeItemContentProviderClass);
-			    Object leftParent = treeItemContentProvider.getParent(modelV1Element) ; 
-			    itemLabelProvider = (IItemLabelProvider)adapterFactory.adapt(leftParent, IItemLabelProviderClass);
-			    String leftParentText = itemLabelProvider.getText(leftParent);
-			    
-			    System.out.println(leftText + "  : " + leftParentText); 
-			}
-
-			
-			System.out.println("Version2:") ;
-			for (Object modelV2Element : modelV2.allInstances()) {
-			    itemLabelProvider = (IItemLabelProvider)adapterFactory.adapt(modelV2Element, IItemLabelProviderClass);
-			    String leftText =    itemLabelProvider.getText(modelV2Element) ; 
-			    		   
-			    treeItemContentProvider = (ITreeItemContentProvider)adapterFactory.adapt(modelV2Element, ITreeItemContentProviderClass);
-			    Object leftParent = treeItemContentProvider.getParent(modelV2Element) ; 
-			    itemLabelProvider = (IItemLabelProvider)adapterFactory.adapt(leftParent, IItemLabelProviderClass);
-			    String leftParentText = itemLabelProvider.getText(leftParent);
-			    
-			    System.out.println(leftText + "  : " + leftParentText); 
-			}
-	*/		
 			
 			//********** Conflict Detection & Resolution with EVL Script ***********
 			if(this.DetectionPatternScriptFC.path != null){
@@ -501,7 +449,6 @@ public class InferringScriptSelectionPage extends WizardPage {
 			classType2 = classType2.replace("<","") ;
 			classType2 = classType2.replace(">","") ;
 			try {
-//					Collection<EObject> tes = V2.getAllOfKind(classType1) ; 
 				
 				for (EObject modelV2Element : V2.getAllOfKind(classType2)) {
 				    itemLabelProvider = (IItemLabelProvider)adapterFactory.adapt(modelV2Element, IItemLabelProviderClass);
@@ -539,14 +486,11 @@ public class InferringScriptSelectionPage extends WizardPage {
 	private void editV1WithV2(EObject V1, EObject V2)
 	{	
 		for(EStructuralFeature esf : V1.eClass().getEAllAttributes())
-//		for(EStructuralFeature esf : V1.eClass().getEAllStructuralFeatures())
 		{		
 			if(V2.eClass().getEAllAttributes().contains(esf))
-//			if(V2.eClass().getEAllStructuralFeatures().contains(esf))
 				if(V2.eGet(esf)!=null){
 					String st = esf.getName() ; 
 					if(st.equals("visibility") == false)
-//						if(esf.isChangeable() && V1.eIsSet(esf))
 						if(esf.isChangeable())
 							V1.eSet(esf, V2.eGet(esf));
 				}	
@@ -566,9 +510,6 @@ public class InferringScriptSelectionPage extends WizardPage {
 		evlFile = evlFile.replaceAll("\\\\", "/");
 		java.net.URI evlURI = java.net.URI.create("file:/"+evlFile) ; 
 		evlModule.parse(evlURI) ; 
-//		java.net.URI b = java.net.URI.create(evlFile) ; 
-//		evlModule.parse(b) ;
-//		evlModule.parse(EpsilonStandalone.class.getResource(evlFile).toURI());
 		evlModule.getContext().getModelRepository().addModel(baseModel);
 		evlModule.getContext().getModelRepository().addModel(leftModel);
 		evlModule.getContext().getModelRepository().addModel(rightModel);
@@ -584,7 +525,6 @@ public class InferringScriptSelectionPage extends WizardPage {
 		Collection<UnsatisfiedConstraint> unsatisfied = evlModule.getContext().getUnsatisfiedConstraints();
 		
 		if (unsatisfied.size() > 0) {
-			System.out.println("Befooorrrrrrrrr") ; 
 			
 			IWorkbench wb = PlatformUI.getWorkbench();
 			IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
@@ -594,7 +534,7 @@ public class InferringScriptSelectionPage extends WizardPage {
 			for (UnsatisfiedConstraint uc : unsatisfied) {
 				ArrayList<String> StList = new ArrayList<String>() ;
 				i++ ; 
-				String title = i + " of " + unsatisfied.size() + " conflict(s) pattern that have been detected" ; 
+				String title = i + " of " + unsatisfied.size() + " Conflicts have been detected" ; 
 				StList.add("No Fix Required ...") ; 
 				System.err.println(uc.getMessage());
 				for(FixInstance fi : uc.getFixes()){
@@ -617,32 +557,7 @@ public class InferringScriptSelectionPage extends WizardPage {
 		else {
 			System.out.println("All constraints have been satisfied");
 		}
-		
-		
-//		IWorkbench wb = PlatformUI.getWorkbench();
-//	   	IWorkbenchWindow win = wb.getActiveWorkbenchWindow();
-//		ValidationView VV = new ValidationView(win.getShell(), this.selectedProject) ;	
-//		VV.unSConstraint = unsatisfied ; 
-//		VV.open() ; 
-		
-
-		
-			
-		System.out.println("Afterrrrrrrrrrrrrr");
-
-	   	
-	   	
-//		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().
-//				showView("org.eclipse.epsilon.evl.dt.views.ValidationView");
-		
-//		evlModule.setUnsatisfiedConstraintFixer(new IEvlFixer() {
-//			public void fix(IEvlModule module) throws EolRuntimeException {
-//				// Do nothing
-//			}
-//});
-		
-//		ValidationViewFixer fixer = new ValidationViewFixer();
-//		validationView.fix(evlModule, fixer);
+	
 	}
 	
 }

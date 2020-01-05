@@ -3,8 +3,17 @@ package ir.ui.se.mdserg.e3mp.helper;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
-import java.beans.XMLEncoder;
-import java.io.BufferedOutputStream;
+
+import org.eclipse.jface.dialogs.IMessageProvider;
+
+//import javax.swing.BorderFactory;
+//import javax.swing.JLabel;
+
+//import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.TitleAreaDialog;
+//import java.awt.BorderLayout;
+//import java.beans.XMLEncoder;
+//import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -13,7 +22,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.debug.internal.core.commands.ForEachCommand;
+//import org.eclipse.debug.internal.core.commands.ForEachCommand;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.ecore.provider.EcoreItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
@@ -30,13 +39,13 @@ import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.layout.GridLayoutFactory;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
+//import org.eclipse.jface.dialogs.Dialog;
+//import org.eclipse.jface.layout.GridLayoutFactory;
+//import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
-import org.eclipse.swt.widgets.TreeColumn;
+//import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
@@ -53,7 +62,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.graphics.Color;
 
-public class TreeView extends Dialog {
+public class TreeView extends TitleAreaDialog{ //Dialog {
 	public InMemoryEmfModel BaseModel ; 
 	public InMemoryEmfModel NewModel ;
 	public String MMpath ; 
@@ -88,9 +97,23 @@ public class TreeView extends Dialog {
 	}
 	
     @Override
+    public void create() {
+        super.create();
+        setTitle("Please Review the Created Match-List and Revise it if Required ...");
+          
+        StringBuffer text = new StringBuffer();
+          text.append("Elements Color Guideline:\n") ; 
+          text.append("     \u2022 Green: Automatically Matched Elements");
+          text.append("     \u2022 Black: Without Matched Elements");
+          text.append("     \u2022 Orange: Potential Similar Elements");
+          
+        setMessage(text.toString(),IMessageProvider.INFORMATION) ;
+    }
+	
+    @Override
     protected Control createDialogArea(Composite parent) {
         Composite composite = new Composite(parent, SWT.NONE);
-		GridData data = new GridData(GridData.FILL_BOTH);
+    	GridData data = new GridData(GridData.FILL_BOTH);
 		composite.setLayoutData(data);
 		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
@@ -140,7 +163,7 @@ public class TreeView extends Dialog {
 	    
 	    ///////////////////////////////////////////////////////////////////////////////////////////////    
 	    
-        viewer1 = new TreeViewer(composite);
+        viewer1 = new TreeViewer(composite) ;
         viewer1.setContentProvider(new MyAdapterFactoryContentProvider(composedAdapterFactory));
         viewer1.getTree().setHeaderVisible(true);
         viewer1.getTree().setLinesVisible(true);
@@ -181,7 +204,7 @@ public class TreeView extends Dialog {
 		
 		Display display = Display.getCurrent();
     	Color GreenColor = new Color(display,0, 160, 40);
-		Color RedColor = new Color(display,255, 0, 0);
+		Color OrangeColor = new Color(display,255,128,0); //255, 0, 0);
 		Color BlackColor = new Color(display,0, 0, 0);
 		
 		// Add Listener for viewer 1 to show pair item that are match and select new match 
@@ -232,15 +255,15 @@ public class TreeView extends Dialog {
             		for(int j=0; j<v2AllItems.size(); j++)
             		{
             			if(selectedItemParentMatchinV2 == null){
-            				if(v2AllItems.get(j).getText().contains(sType)) {
+            				if(v2AllItems.get(j).isDisposed()==false && v2AllItems.get(j).getText().contains(sType)) {
                 				predictedPotentialItems.add(v2AllItems.get(j)) ;
-                				v2AllItems.get(j).setForeground(RedColor);
+                				v2AllItems.get(j).setForeground(OrangeColor);
             				}
                 			
             			}else{
-            				if(v2AllItems.get(j).getText().contains(sType) && v2AllItems.get(j).getParentItem().equals(selectedItemParentMatchinV2)){
+            				if(v2AllItems.get(j).isDisposed()==false && v2AllItems.get(j).getText().contains(sType) && v2AllItems.get(j).getParentItem().equals(selectedItemParentMatchinV2)){
             					predictedPotentialItems.add(v2AllItems.get(j)) ;
-            					v2AllItems.get(j).setForeground(RedColor);
+            					v2AllItems.get(j).setForeground(OrangeColor);
                 			}
             			}
             		}
@@ -271,7 +294,7 @@ public class TreeView extends Dialog {
     protected void fillContextMenu1(IMenuManager contextMenu) {
         contextMenu.add(new GroupMarker(IWorkbenchActionConstants.MB_ADDITIONS));
       
-        contextMenu.add(new Action("Remove Exsited Match") {
+        contextMenu.add(new Action("Remove Existing Match") {
             @Override
             public void run() {
     			Display display = Display.getCurrent();
@@ -303,67 +326,7 @@ public class TreeView extends Dialog {
             	viewer1.refresh();
             	viewer2.refresh();
             }
-        });
-        
-//        contextMenu.add(new Action("Set as Equivalent") {
-//            @Override
-//            public void run() {
-//    			Display display = Display.getCurrent();
-//            	Color GreenColor = new Color(display,0, 160, 40);
-//             	Color BlackColor = new Color(display,0, 0, 0);
-//            	Color RedColor = new Color(display,255, 0, 0);
-//            	
-//            	TreeItem[] v2Selection = viewer2.getTree().getSelection() ;
-//            	TreeItem TIV2 = v2Selection[0] ;
-//
-//            	TreeItem[] v1Selection = viewer1.getTree().getSelection() ;
-//            	TreeItem TIV1 = v1Selection[0] ;
-//                       
-////        		int delIndex = v2MatchList.indexOf(TIV2) ; 
-////        		if(delIndex != -1){
-////        			v1MatchList.get(delIndex).setForeground(BlackColor);
-////        			v2MatchList.get(delIndex).setForeground(BlackColor);
-////        			v1MatchList.remove(delIndex) ;
-////        			v2MatchList.remove(delIndex) ; 
-////        		}
-//        		
-//            	int index = v1MatchList.indexOf(TIV1) ;
-//            	if(index == -1){
-//            		v1MatchList.add(TIV1) ;
-//            	}
-//        		v2MatchList.add(TIV2) ;
-//        		v1AllItems.remove(TIV1) ;
-//        		v2AllItems.remove(TIV2) ;
-//            	
-//            	
-////            	else{
-////            		v2MatchList.get(index).setForeground(BlackColor);
-////            		v2AllItems.add(TIV2) ; 
-////            		v2MatchList.set(index, TIV2) ;
-////            	}
-//            	
-////            	if(previousMatchedItem != null){
-////            		previousMatchedItem.setForeground(BlackColor);
-////            	}
-//            	if(predictedPotentialItems != null){
-//            		for(int k=0; k<predictedPotentialItems.size(); k++){
-//            			predictedPotentialItems.get(k).setForeground(BlackColor);
-//            		}
-//            		predictedPotentialItems.clear();
-//            		predictedPotentialItems = null ; 
-//            	}
-//            	
-//            	TIV1.setForeground(GreenColor);
-//            	TIV2.setForeground(GreenColor);
-//            	
-//            	previousMatchedItem = TIV2 ; 
-//            	
-//            	viewer2.setSelection(StructuredSelection.EMPTY);
-//                	
-//            	viewer1.refresh();
-//            	viewer2.refresh();
-//            }
-//        });
+        });        
     }
    
     
@@ -391,22 +354,13 @@ public class TreeView extends Dialog {
     			Display display = Display.getCurrent();
             	Color GreenColor = new Color(display,0, 160, 40);
              	Color BlackColor = new Color(display,0, 0, 0);
-            	Color RedColor = new Color(display,255, 0, 0);
             	
             	TreeItem[] v2Selection = viewer2.getTree().getSelection() ;
             	TreeItem TIV2 = v2Selection[0] ;
 
             	TreeItem[] v1Selection = viewer1.getTree().getSelection() ;
             	TreeItem TIV1 = v1Selection[0] ;
-                       
-//        		int delIndex = v2MatchList.indexOf(TIV2) ; 
-//        		if(delIndex != -1){
-//        			v1MatchList.get(delIndex).setForeground(BlackColor);
-//        			v2MatchList.get(delIndex).setForeground(BlackColor);
-//        			v1MatchList.remove(delIndex) ;
-//        			v2MatchList.remove(delIndex) ; 
-//        		}
-        		
+                               		
             	int index = v1MatchList.indexOf(TIV1) ;
             	if(index == -1){
             		v1MatchList.add(TIV1) ;
@@ -415,13 +369,7 @@ public class TreeView extends Dialog {
             		v1AllItems.remove(TIV1) ;
             		v2AllItems.remove(TIV2) ;
             	}
-            	
-//            	else{
-//            		v2MatchList.get(index).setForeground(BlackColor);
-//            		v2AllItems.add(TIV2) ; 
-//            		v2MatchList.set(index, TIV2) ;
-//            	}
-            	
+            	            	
             	if(previousMatchedItem != null){
             		previousMatchedItem.setForeground(BlackColor);
             	}
@@ -550,16 +498,7 @@ public class TreeView extends Dialog {
 		dir = dir.replace(".ecore", "Matches.match") ;
 		dir = dir.replace(".xmi", "Matches.match") ;
 		dir = dir.replace(".model", "Matches.match") ;
-    	
-//		XMLEncoder encoder=null;
-//		try{
-//			encoder=new XMLEncoder(new BufferedOutputStream(new FileOutputStream(dir)));
-//		}catch(FileNotFoundException fileNotFound){
-//			System.out.println("ERROR: While Creating the File Matches.xml");
-//		}
-//		encoder.writeObject(matchMemberList);
-//		encoder.close();
-		
+    			
 		try {
 		    FileOutputStream outputStream=new FileOutputStream(dir);
 		    ObjectOutputStream objectOutputStream= new ObjectOutputStream(outputStream);

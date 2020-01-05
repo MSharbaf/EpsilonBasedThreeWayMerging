@@ -19,8 +19,8 @@ public class SampleHandler extends AbstractHandler {
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
 		MessageDialog.openInformation(
 				window.getShell(),
-				"E3mp",
-				"Hello, Welcome to Epsilon 3-way Merging Process (E3MP)");
+				"C3MP",
+				"Hello, Welcome to Customizable 3-way Merging Process (C3MP)");
 		return null;
 	}
 }

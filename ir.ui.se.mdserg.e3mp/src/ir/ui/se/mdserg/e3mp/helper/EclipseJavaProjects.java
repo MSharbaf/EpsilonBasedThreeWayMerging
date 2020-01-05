@@ -28,14 +28,4 @@ public class EclipseJavaProjects {
       }
       return projectList;
    }
-   
-   
-//   public static void main(String[] args) {
-//	   System.out.println("Start"); 
-//	   
-//	   List<IJavaProject> listProj = getJavaProjects() ; 
-//	   
-//	   System.out.println("Finish")  ;
-//	   
-//   }
 }

@@ -43,7 +43,7 @@ public class MatchingHandler extends AbstractHandler {
 		
 		try {
 			MatchingWizard wizard = new MatchingWizard() ; 
-			wizard.setWindowTitle("Matching Process");
+			wizard.setWindowTitle("Matching Part");
 			WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
 
 			if (dialog.open() == Window.OK) {
@@ -57,63 +57,7 @@ public class MatchingHandler extends AbstractHandler {
 	
 		return null;
 	}
-
 	
-	
-	
-	
-	
-/*	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindowChecked(event);
-		MessageDialog.openInformation(
-				window.getShell(),
-				"E3mp",
-				"Hello, Welcome to Equivalent Matching Process (EquiMatchProc)");
-		return null;
-	}
-*/
-	
-//	public Object execute(ExecutionEvent event) throws ExecutionException {
-//		HandlerUtil.getActiveWorkbenchWindowChecked(event);
-//		
-//		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-//        IProject[] projects = workspaceRoot.getProjects();
-//        
-//        System.out.println("Sta"); 
-//        
-//        for(int i=0; i<projects.length ; i++)
-//        	System.out.println(projects[i].getName());
-//        
-//        System.out.println("Projects") ; 
-//	
-//		try {
-//			
-//			//String projectName =JOptionPane.showInputDialog("Insert the name of your project:");
-//			//IProject project = ResourceHelper.createProject(projectName);
-//			
-//			IProject project = projects[0] ; 
-//			if (project.exists())
-//			{
-//			
-//				//loading weaving metamodel
-//				URL urll = FileLocator.find(Platform.getBundle("ir.ui.se.mdserg.e3mp"), new Path("resources/metamodels/GeneralWeaving.ecore"), null);
-//				
-//				//register metamodel epackage
-//				java.net.URI javaURI = urll.toURI();
-//				org.eclipse.emf.common.util.URI uri = org.eclipse.emf.common.util.URI.createURI(javaURI.toString());
-//				registerEPackages(uri);
-//				
-//				new EcoreFileChooser(project);
-//			    project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-//			}
-//			
-//		} catch (CoreException  | URISyntaxException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		return null;
-//	}
 	
 	public String getStringFromXMLDoc(Document doc) throws TransformerException{
 		String content="";
